@@ -9,7 +9,7 @@ env:
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
   ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
   ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
-  CONTAINER_NAME: my-ecs-app
+  CONTAINER_NAME: kalana-ecs-app
 
 jobs:
   deploy:
