@@ -38,12 +38,17 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        cd app
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+        # Build multi-architecture Docker image and push to ECR
+        docker buildx build --platform linux/amd64,linux/arm64 \
+        -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --push ./app
+
+        # Tag the same image as latest and push
+        docker buildx build --platform linux/amd64,linux/arm64 \
+        -t $ECR_REGISTRY/$ECR_REPOSITORY:latest --push ./app
+
+         # Set output for ECS deployment
+         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
     - name: Download task definition
       run: |
         aws ecs describe-task-definition \
@@ -64,6 +69,7 @@ jobs:
         service: ${{ env.ECS_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
+
 
 
 
